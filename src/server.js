@@ -43,20 +43,32 @@ app.post('/api/call', async (req, res) => {
   try {
     const payload = {
       assistantId,
-      phoneNumberId: process.env.VAPI_PHONE_NUMBER_ID || undefined,
       customer: {
         number: phoneNumber.trim(),
       },
     };
 
-    // If no Vapi phone number ID, use Twilio credentials directly
-    if (!process.env.VAPI_PHONE_NUMBER_ID && process.env.TWILIO_ACCOUNT_SID) {
+    // Prefer VAPI_PHONE_NUMBER_ID (imported Twilio number in Vapi)
+    if (process.env.VAPI_PHONE_NUMBER_ID) {
+      payload.phoneNumberId = process.env.VAPI_PHONE_NUMBER_ID.trim();
+      console.log('[CALL] Using Vapi phone number ID:', payload.phoneNumberId);
+    } else if (process.env.TWILIO_ACCOUNT_SID) {
+      // Fallback: pass raw Twilio creds (fragile — prefer importing into Vapi)
+      console.warn('[CALL] ⚠️  VAPI_PHONE_NUMBER_ID not set — falling back to raw Twilio credentials.');
+      console.warn('       Import your Twilio number into Vapi for more reliable calls:');
+      console.warn('       https://dashboard.vapi.ai/phone-numbers → Import Twilio Number');
       payload.phoneNumber = {
         twilioAccountSid:   process.env.TWILIO_ACCOUNT_SID.trim(),
         twilioAuthToken:    process.env.TWILIO_AUTH_TOKEN.trim(),
         twilioPhoneNumber:  process.env.TWILIO_PHONE_NUMBER.trim(),
       };
+    } else {
+      return res.status(503).json({
+        error: 'No phone number configured. Set VAPI_PHONE_NUMBER_ID or TWILIO credentials in .env',
+      });
     }
+
+    console.log('[CALL] Outbound payload:', JSON.stringify(payload, null, 2));
 
     const response = await axios.post(
       'https://api.vapi.ai/call/phone',
@@ -70,6 +82,7 @@ app.post('/api/call', async (req, res) => {
     );
 
     const callData = response.data;
+    console.log('[CALL] Vapi response:', JSON.stringify(callData, null, 2));
 
     // Record in DB
     await insertCall({
@@ -84,7 +97,10 @@ app.post('/api/call', async (req, res) => {
   } catch (err) {
     const msg = err.response?.data?.message || err.message;
     console.error('[CALL ERROR]', msg);
-    res.status(500).json({ error: msg });
+    if (err.response?.data) {
+      console.error('[CALL ERROR] Full response:', JSON.stringify(err.response.data, null, 2));
+    }
+    res.status(500).json({ error: msg, details: err.response?.data || null });
   }
 });
 
@@ -100,6 +116,27 @@ app.get('/api/calls/:id', async (req, res) => {
   const call = await getCall(req.params.id);
   if (!call) return res.status(404).json({ error: 'Call not found' });
   res.json(call);
+});
+
+// ─── GET /api/calls/:id/vapi ──────────────────────────────────────────────────
+// Query Vapi's API directly for real-time call status and endedReason
+app.get('/api/calls/:id/vapi', async (req, res) => {
+  try {
+    const response = await axios.get(
+      `https://api.vapi.ai/call/${req.params.id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.VAPI_API_KEY}`,
+        },
+      }
+    );
+    const { id, status, endedReason, startedAt, endedAt, cost } = response.data;
+    console.log(`[DIAG] Call ${id}: status=${status} endedReason=${endedReason}`);
+    res.json({ id, status, endedReason, startedAt, endedAt, cost, raw: response.data });
+  } catch (err) {
+    const msg = err.response?.data?.message || err.message;
+    res.status(err.response?.status || 500).json({ error: msg });
+  }
 });
 
 // ─── POST /webhook ────────────────────────────────────────────────────────────

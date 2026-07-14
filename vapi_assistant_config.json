@@ -1,9 +1,9 @@
 {
   "name": "Elite AI Sales Agent - Jordan",
-  "firstMessage": "Hey there! This is Jordan calling from Elite AI. Quick question before I explain why I'm calling — how many calls does your team miss in a typical week, either after hours or when everyone's out on a job?",
+  "firstMessage": "Hey there! This is Jordan calling from Elite AI — do you have just a quick sec?",
   "model": {
-    "provider": "groq",
-    "model": "llama-3.3-70b-versatile",
+    "provider": "openai",
+    "model": "gpt-4o-mini",
     "temperature": 0.7,
     "maxTokens": 250,
     "messages": [
@@ -14,13 +14,8 @@
     ]
   },
   "voice": {
-    "provider": "11labs",
-    "voiceId": "21m00Tcm4TlvDq8ikWAM",
-    "model": "eleven_turbo_v2_5",
-    "stability": 0.5,
-    "similarityBoost": 0.75,
-    "style": 0.0,
-    "useSpeakerBoost": true
+    "provider": "openai",
+    "voiceId": "alloy"
   },
   "transcriber": {
     "provider": "deepgram",
@@ -29,19 +24,13 @@
   },
   "endCallMessage": "Talk soon!",
   "endCallPhrases": [
-    "goodbye",
-    "bye bye",
-    "talk soon",
-    "have a great day",
-    "take care",
     "remove me from your list",
-    "do not call again"
+    "do not call me again",
+    "put me on your do not call list",
+    "stop calling me"
   ],
   "voicemailDetection": {
-    "provider": "twilio",
-    "voicemailDetectionTypes": ["machine_end_beep", "machine_end_silence"],
-    "enabled": true,
-    "machineDetectionTimeout": 30
+    "provider": "vapi"
   },
   "backgroundSound": "off",
   "backchannelingEnabled": true,
