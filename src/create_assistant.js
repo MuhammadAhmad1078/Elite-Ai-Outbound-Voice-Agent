@@ -43,10 +43,7 @@ async function main() {
     config.serverUrl = `${webhookUrl}/webhook`;
   }
 
-  // Add ElevenLabs API key if set
-  if (process.env.ELEVENLABS_API_KEY && process.env.ELEVENLABS_API_KEY !== 'your_elevenlabs_api_key_here') {
-    config.voice.elevenlabsApiKey = process.env.ELEVENLABS_API_KEY;
-  }
+  // Set custom voice ID if provided
   if (process.env.ELEVENLABS_VOICE_ID) {
     config.voice.voiceId = process.env.ELEVENLABS_VOICE_ID;
   }

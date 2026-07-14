@@ -45,16 +45,16 @@ app.post('/api/call', async (req, res) => {
       assistantId,
       phoneNumberId: process.env.VAPI_PHONE_NUMBER_ID || undefined,
       customer: {
-        number: phoneNumber,
+        number: phoneNumber.trim(),
       },
     };
 
     // If no Vapi phone number ID, use Twilio credentials directly
     if (!process.env.VAPI_PHONE_NUMBER_ID && process.env.TWILIO_ACCOUNT_SID) {
       payload.phoneNumber = {
-        twilioAccountSid:   process.env.TWILIO_ACCOUNT_SID,
-        twilioAuthToken:    process.env.TWILIO_AUTH_TOKEN,
-        number:             process.env.TWILIO_PHONE_NUMBER,
+        twilioAccountSid:   process.env.TWILIO_ACCOUNT_SID.trim(),
+        twilioAuthToken:    process.env.TWILIO_AUTH_TOKEN.trim(),
+        twilioPhoneNumber:  process.env.TWILIO_PHONE_NUMBER.trim(),
       };
     }
 
