@@ -10,6 +10,12 @@ export default function App() {
   const [activeCall, setActiveCall] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  const syncFromVapi = useCallback(async () => {
+    try {
+      await fetch('/api/calls/sync', { method: 'POST' })
+    } catch { /* silent */ }
+  }, [])
+
   const fetchCalls = useCallback(async () => {
     try {
       const res = await fetch('/api/calls')
@@ -23,15 +29,19 @@ export default function App() {
     }
   }, [])
 
-  useEffect(() => { fetchCalls() }, [fetchCalls])
+  // On mount: sync from Vapi API first, then load calls
+  useEffect(() => {
+    syncFromVapi().then(fetchCalls)
+  }, [syncFromVapi, fetchCalls])
 
   useEffect(() => {
     if (!activeCall) return
     const interval = setInterval(async () => {
+      await syncFromVapi()
       await fetchCalls()
     }, 4000)
     return () => clearInterval(interval)
-  }, [activeCall, fetchCalls])
+  }, [activeCall, syncFromVapi, fetchCalls])
 
   const handleCallInitiated = (callId, phoneNumber) => {
     setActiveCall({ callId, phoneNumber, status: 'ringing' })
@@ -66,7 +76,7 @@ export default function App() {
           </div>
 
           <Stats calls={calls} />
-          <CallLogs calls={calls} loading={loading} onRefresh={fetchCalls} />
+          <CallLogs calls={calls} loading={loading} onRefresh={fetchCalls} onSync={syncFromVapi} />
 
         </div>
       </main>

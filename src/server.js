@@ -139,6 +139,59 @@ app.get('/api/calls/:id/vapi', async (req, res) => {
   }
 });
 
+// ─── POST /api/calls/sync ─────────────────────────────────────────────────────
+// Sync call data from Vapi API → local DB (fallback when webhooks don't arrive)
+app.post('/api/calls/sync', async (req, res) => {
+  try {
+    const response = await axios.get(
+      'https://api.vapi.ai/call?limit=20',
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.VAPI_API_KEY}`,
+        },
+      }
+    );
+
+    const vapiCalls = Array.isArray(response.data) ? response.data : response.data?.results || [];
+    let synced = 0;
+
+    for (const vc of vapiCalls) {
+      if (vc.status !== 'ended') continue;
+
+      const recordingUrl = vc.recordingUrl || vc.artifact?.recordingUrl || null;
+      const transcript = vc.artifact?.transcript || vc.transcript || null;
+      const analysis = vc.analysis || {};
+      const structured = analysis.structuredData || null;
+      const outcome = structured?.outcome || (vc.endedReason === 'customer-did-not-answer' ? 'NOT_INTERESTED' : 'UNKNOWN');
+
+      const durationSec = (vc.startedAt && vc.endedAt)
+        ? Math.round((new Date(vc.endedAt) - new Date(vc.startedAt)) / 1000)
+        : null;
+
+      await updateCall({
+        id:            vc.id,
+        status:        'ended',
+        outcome,
+        duration_sec:  durationSec,
+        recording_url: recordingUrl,
+        transcript:    typeof transcript === 'string' ? transcript : (transcript ? JSON.stringify(transcript) : null),
+        summary:       analysis.summary || vc.artifact?.messages?.[0]?.message || null,
+        structured,
+        cost:          vc.cost || null,
+        ended_at:      vc.endedAt || null,
+      });
+      synced++;
+    }
+
+    console.log(`[SYNC] Synced ${synced} calls from Vapi API`);
+    res.json({ success: true, synced });
+  } catch (err) {
+    const msg = err.response?.data?.message || err.message;
+    console.error('[SYNC ERROR]', msg);
+    res.status(500).json({ error: msg });
+  }
+});
+
 // ─── POST /webhook ────────────────────────────────────────────────────────────
 // Receives Vapi end-of-call-report and status-update events
 app.post('/webhook', (req, res) => {

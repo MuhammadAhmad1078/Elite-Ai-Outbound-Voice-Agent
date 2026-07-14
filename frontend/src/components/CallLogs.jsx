@@ -2,7 +2,7 @@ import CallCard from './CallCard'
 
 const COLS = ['Phone Number', 'Outcome', 'Duration', 'Date', 'Summary', 'Recording']
 
-export default function CallLogs({ calls, loading, onRefresh }) {
+export default function CallLogs({ calls, loading, onRefresh, onSync }) {
   return (
     <div style={{ marginTop: 32 }}>
       {/* Section header */}
@@ -13,18 +13,34 @@ export default function CallLogs({ calls, loading, onRefresh }) {
             All outbound calls logged by the agent
           </p>
         </div>
-        <button
-          id="refresh-btn"
-          onClick={onRefresh}
-          className="btn btn-ghost"
-          style={{ gap: 6, fontSize: 13 }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>
-            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>
-          </svg>
-          Refresh
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {onSync && (
+            <button
+              id="sync-btn"
+              onClick={async () => { await onSync(); onRefresh(); }}
+              className="btn btn-ghost"
+              style={{ gap: 6, fontSize: 13 }}
+              title="Pull latest recordings & data from Vapi"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
+              </svg>
+              Sync from Vapi
+            </button>
+          )}
+          <button
+            id="refresh-btn"
+            onClick={onRefresh}
+            className="btn btn-ghost"
+            style={{ gap: 6, fontSize: 13 }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/>
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>
+            </svg>
+            Refresh
+          </button>
+        </div>
       </div>
 
       <div className="card" style={{ overflow: 'hidden' }}>
