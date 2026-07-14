@@ -1,0 +1,84 @@
+{
+  "name": "Elite AI Sales Agent - Jordan",
+  "firstMessage": "Hey there! This is Jordan calling from Elite AI. Quick question before I explain why I'm calling — how many calls does your team miss in a typical week, either after hours or when everyone's out on a job?",
+  "model": {
+    "provider": "groq",
+    "model": "llama-3.3-70b-versatile",
+    "temperature": 0.7,
+    "maxTokens": 250,
+    "messages": [
+      {
+        "role": "system",
+        "content": "SYSTEM_PROMPT_PLACEHOLDER"
+      }
+    ]
+  },
+  "voice": {
+    "provider": "11labs",
+    "voiceId": "21m00Tcm4TlvDq8ikWAM",
+    "model": "eleven_turbo_v2_5",
+    "stability": 0.5,
+    "similarityBoost": 0.75,
+    "style": 0.0,
+    "useSpeakerBoost": true
+  },
+  "transcriber": {
+    "provider": "deepgram",
+    "model": "nova-2",
+    "language": "en-US"
+  },
+  "endCallMessage": "Talk soon!",
+  "endCallPhrases": [
+    "goodbye",
+    "bye bye",
+    "talk soon",
+    "have a great day",
+    "take care",
+    "remove me from your list",
+    "do not call again"
+  ],
+  "voicemailDetection": {
+    "provider": "twilio",
+    "voicemailDetectionTypes": ["machine_end_beep", "machine_end_silence"],
+    "enabled": true,
+    "machineDetectionTimeout": 30
+  },
+  "backgroundSound": "off",
+  "backchannelingEnabled": true,
+  "backgroundDenoisingEnabled": true,
+  "startSpeakingPlan": {
+    "waitSeconds": 0.3,
+    "smartEndpointingEnabled": true
+  },
+  "stopSpeakingPlan": {
+    "numWords": 0,
+    "voiceSeconds": 0.2,
+    "backoffSeconds": 1
+  },
+  "maxDurationSeconds": 600,
+  "silenceTimeoutSeconds": 20,
+  "serverUrl": "WEBHOOK_URL_PLACEHOLDER/webhook",
+  "serverMessages": [
+    "end-of-call-report",
+    "status-update",
+    "hang"
+  ],
+  "analysisPlan": {
+    "summaryPrompt": "Summarize this sales call in 2 sentences. What was the prospect's main objection or interest, and what was the outcome?",
+    "structuredDataPrompt": "Extract the call outcome. Return a JSON object with: { outcome: one of [BOOKED_DEMO, CALLBACK, NOT_INTERESTED, DO_NOT_CALL, VOICEMAIL], callbackTime: string or null, demoTime: string or null, prospectEmail: string or null, notes: string }",
+    "structuredDataSchema": {
+      "type": "object",
+      "properties": {
+        "outcome": {
+          "type": "string",
+          "enum": ["BOOKED_DEMO", "CALLBACK", "NOT_INTERESTED", "DO_NOT_CALL", "VOICEMAIL"]
+        },
+        "callbackTime": { "type": "string" },
+        "demoTime": { "type": "string" },
+        "prospectEmail": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["outcome"]
+    }
+  }
+}
