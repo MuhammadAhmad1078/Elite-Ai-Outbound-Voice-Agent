@@ -13,6 +13,13 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// ─── Serve React frontend (production build) ─────────────────────────────────
+const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  console.log('[STATIC] Serving frontend from', frontendDist);
+}
+
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -240,6 +247,13 @@ app.post('/webhook', (req, res) => {
     }
   })().catch(err => console.error('[WEBHOOK ERROR]', err));
 });
+
+// ─── Catch-all: serve React SPA for any non-API route (production) ────────────
+if (fs.existsSync(frontendDist)) {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
 
 // ─── Start server ─────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
