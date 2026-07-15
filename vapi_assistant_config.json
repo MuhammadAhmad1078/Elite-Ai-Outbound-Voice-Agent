@@ -33,16 +33,16 @@
     "provider": "vapi"
   },
   "backgroundSound": "off",
-  "backchannelingEnabled": true,
+  "backchannelingEnabled": false,
   "backgroundDenoisingEnabled": true,
   "startSpeakingPlan": {
-    "waitSeconds": 0.3,
+    "waitSeconds": 0.8,
     "smartEndpointingEnabled": true
   },
   "stopSpeakingPlan": {
-    "numWords": 0,
-    "voiceSeconds": 0.2,
-    "backoffSeconds": 1
+    "numWords": 2,
+    "voiceSeconds": 0.5,
+    "backoffSeconds": 2
   },
   "maxDurationSeconds": 600,
   "silenceTimeoutSeconds": 20,
