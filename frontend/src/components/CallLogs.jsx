@@ -1,6 +1,6 @@
 import CallCard from './CallCard'
 
-const COLS = ['Phone Number', 'Outcome', 'Duration', 'Date', 'Summary', 'Recording']
+const COLS = ['Phone Number', 'Outcome', 'Duration', 'Date', 'Summary', 'Recording / Transcript']
 
 export default function CallLogs({ calls, loading, onRefresh, onSync }) {
   return (
